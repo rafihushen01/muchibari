@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"; // ensures SSR, avoids build-time errors
+
 import Link from 'next/link'
 import { ArrowRight, Star } from 'lucide-react'
 import { getWhatsAppLink } from '@/lib/data'
@@ -5,6 +7,7 @@ import { ReviewCard } from '@/components/review-card'
 import { api } from '@/lib/api'
 
 export default async function ReviewsPage() {
+  // Fetch reviews dynamically at request time
   const rawReviews = await api.reviews.list({ approved: true })
 
   const reviews = (rawReviews ?? []).map((r: any) => ({
@@ -107,8 +110,8 @@ export default async function ReviewsPage() {
             WhatsApp-এ আমাদের রিভিউ পাঠান!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-            
-            <a  href={getWhatsAppLink('Hi, I want to share my review for Muchi Bari!')}
+            <a
+              href={getWhatsAppLink('Hi, I want to share my review for Muchi Bari!')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#25D366]/90 transition-colors"
@@ -129,5 +132,5 @@ export default async function ReviewsPage() {
         </div>
       </div>
     </div>
-  )
+     )
 }
