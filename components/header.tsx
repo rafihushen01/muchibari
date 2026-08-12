@@ -1,0 +1,165 @@
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { Phone, UserCircle, Menu, X, Home, ShoppingBag, MessageCircle, ShoppingCart, LogIn } from 'lucide-react'
+import { WHATSAPP_NUMBER } from '@/lib/data'
+import { useEffect, useState } from 'react'
+import { api, getStoredUser } from '@/lib/api'
+import { useRouter, usePathname } from 'next/navigation'
+
+
+
+export function Header() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [user, setUser] = useState<any>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([])
+
+useEffect(() => { api.categories.list().then(setCategories).catch(() => setCategories([])) }, [])
+
+  useEffect(() => {
+    const syncUser = () => setUser(getStoredUser())
+    syncUser()
+    window.addEventListener('muchi-bari-auth-change', syncUser)
+    return () => window.removeEventListener('muchi-bari-auth-change', syncUser)
+  }, [])
+
+  async function handleLogout() {
+    api.auth.logout()
+    router.push('/')
+  }
+
+  return (
+    <>
+      {/* Top Navbar */}
+      <header className="sticky top-0 z-50 bg-primary border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Left: Hamburger */}
+            <button onClick={() => setDrawerOpen(true)} className="p-2 text-white">
+              <Menu className="w-6 h-6" />
+            </button>
+
+            {/* Center: Logo */}
+            <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+              <Image
+                src="/images/logoWhite.png"
+                alt="MuchiBari"
+                width={120}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
+            </Link>
+
+
+            {/* Right: Call only */}
+            <div className="flex items-center">
+              <a href={`tel:${WHATSAPP_NUMBER}`} className="p-2 text-white">
+                <Phone className="w-5 h-5" />
+              </a>
+              <Link href="/cart" className="hidden md:flex p-2 text-white">
+                <ShoppingCart className="w-5 h-5" />
+              </Link>
+              <Link href="/profile" className="hidden md:flex p-2 text-white">
+                <UserCircle className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Category Drawer */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Overlay */}
+          <div className="fixed inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
+          {/* Drawer */}
+          <div className="relative bg-white w-72 h-full shadow-xl flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <span className="font-bold text-lg text-[#AD3735]">Muchi Bari</span>
+              <button onClick={() => setDrawerOpen(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <nav className="flex flex-col p-4 gap-1 overflow-y-auto flex-1">
+              <Link href="/" onClick={() => setDrawerOpen(false)}
+                className="py-3 px-4 rounded-lg hover:bg-[#FAF5EF] text-foreground font-medium transition-colors">
+                Home
+              </Link>
+              <Link href="/shop" onClick={() => setDrawerOpen(false)}
+                className="py-3 px-4 rounded-lg hover:bg-[#FAF5EF] text-foreground font-medium transition-colors">
+                Shop
+              </Link>
+              <Link href="/reviews" onClick={() => setDrawerOpen(false)}
+                className="py-3 px-4 rounded-lg hover:bg-[#FAF5EF] text-foreground font-medium transition-colors">
+                Reviews
+              </Link>
+              <Link href="/about" onClick={() => setDrawerOpen(false)}
+                className="py-3 px-4 rounded-lg hover:bg-[#FAF5EF] text-foreground font-medium transition-colors">
+                About Us
+              </Link>
+              <div className="border-t my-2" />
+              <span className="px-4 py-1 text-sm font-bold text-[#AD3735]">Categories</span>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/shop?category=${cat.slug}`}
+                  onClick={() => setDrawerOpen(false)}
+                  className="py-3 px-4 rounded-lg hover:bg-[#FAF5EF] text-foreground/80 transition-colors">
+                  {cat.name}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-lg md:hidden">
+  
+  <div className="grid grid-cols-5 h-16 items-center">
+    <Link href="/shop" className={`flex flex-col items-center justify-center gap-1 text-xs transition-colors ${pathname === '/shop' ? 'text-primary' : 'text-foreground/60 hover:text-primary'}`}>
+  <ShoppingBag className="w-5 h-5" />
+  <span>Shop</span>
+</Link>
+
+<a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer"
+  className="flex flex-col items-center justify-center gap-1 text-xs text-foreground/60 hover:text-primary transition-colors">
+  <MessageCircle className="w-5 h-5" />
+  <span>Whatsapp</span>
+</a>
+
+<Link href="/" className="flex flex-col items-center justify-center text-xs relative">
+  <div className="absolute -top-10 flex flex-col items-center">
+    <div className={`rounded-full p-3 shadow-lg transition-colors ${pathname === '/' ? 'bg-primary text-white' : 'bg-gray-300 text-gray-500'}`}>
+  <Home className="w-5 h-5" />
+</div>
+    <span className="text-xs text-foreground/60 mt-1">Home</span>
+  </div>
+</Link>
+
+<Link href="/cart" className={`flex flex-col items-center justify-center gap-1 text-xs transition-colors ${pathname === '/cart' ? 'text-primary' : 'text-foreground/60 hover:text-primary'}`}>
+  <ShoppingCart className="w-5 h-5" />
+  <span>Cart</span>
+</Link>
+
+{user ? (
+  <Link href="/profile" className={`flex flex-col items-center justify-center gap-1 text-xs transition-colors ${pathname === '/profile' ? 'text-primary' : 'text-foreground/60 hover:text-primary'}`}>
+    <UserCircle className="w-5 h-5" />
+    <span>Profile</span>
+  </Link>
+) : (
+  <Link href="/auth/login" className={`flex flex-col items-center justify-center gap-1 text-xs transition-colors ${pathname === '/auth/login' ? 'text-primary' : 'text-foreground/60 hover:text-primary'}`}>
+    <LogIn className="w-5 h-5" />
+    <span>Login</span>
+  </Link>
+)}
+  </div>
+</nav>
+
+    </>
+  )
+}

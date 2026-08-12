@@ -1,0 +1,16 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
+import { AdminGate } from '@/components/admin-gate'
+
+function NewProduct() {
+  const router = useRouter(); const [categories, setCategories] = useState<any[]>([]); const [files, setFiles] = useState<File[]>([]); const [data, setData] = useState<any>({ name: '', description: '', price: '', original_price: '', category_id: '', sizes: '', colors: '', is_hot_deal: false }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
+  useEffect(() => { api.categories.list().then(setCategories).catch((err) => setError(err.message)) }, [])
+  async function submit() { setLoading(true); setError(''); try { if (!data.name || !data.price || !data.category_id) throw new Error('Name, price, and category are required.'); const images = files.length ? await api.uploadImages(files, 'products') : []; await api.products.create({ ...data, price: Number(data.price), original_price: data.original_price ? Number(data.original_price) : null, image_url: images[0]?.url ?? '', image_urls: images.slice(1).map((image) => image.url), in_stock: true }); router.push('/admin/products') } catch (err: any) { setError(err.message) } finally { setLoading(false) } }
+  const field = (label: string, key: string, type = 'text') => <label className="block text-sm font-medium">{label}<input type={type} value={data[key]} onChange={(e) => setData({ ...data, [key]: e.target.value })} className="mt-1 w-full rounded-lg border px-4 py-2"/></label>
+  return <main className="min-h-screen bg-[#FAF5EF] p-6"><div className="mb-6 flex gap-3"><Link href="/admin/products" className="text-[#AD3735]">← Back</Link><h1 className="text-2xl font-bold text-[#AD3735]">Add Product</h1></div><div className="max-w-2xl space-y-4 rounded-xl bg-white p-6 shadow-sm">{error && <p className="text-sm text-red-500">{error}</p>}{field('Product Name', 'name')}{field('Description', 'description')}{field('Price', 'price', 'number')}{field('Original Price', 'original_price', 'number')}<label className="block text-sm font-medium">Category<select value={data.category_id} onChange={(e) => setData({ ...data, category_id: e.target.value })} className="mt-1 w-full rounded-lg border px-4 py-2"><option value="">Select category</option>{categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}</select></label>{field('Sizes (comma separated)', 'sizes')}{field('Colors (comma separated)', 'colors')}<label className="block text-sm font-medium">Product images (up to 5)<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))} className="mt-1 block"/></label><label className="flex items-center gap-2"><input type="checkbox" checked={data.is_hot_deal} onChange={(e) => setData({ ...data, is_hot_deal: e.target.checked })}/> Hot deal</label><button onClick={submit} disabled={loading} className="w-full rounded-lg bg-[#AD3735] py-3 font-semibold text-white disabled:opacity-50">{loading ? 'Adding…' : 'Add Product'}</button></div></main>
+}
+export default function NewProductPage() { return <AdminGate><NewProduct /></AdminGate> }

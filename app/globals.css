@@ -1,0 +1,103 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* MuchiBari Brand Colors */
+  /* --background: #FAF5EF;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #5C3317;
+  --primary-foreground: #FAF5EF;
+  --secondary: #C4874A;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f5ebe0;
+  --muted-foreground: #5C3317;
+  --accent: #C4874A;
+  --accent-foreground: #1a1a1a;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  --border: #d4c4b5;
+  --input: #d4c4b5;
+  --ring: #5C3317;
+  --radius: 0.5rem; */
+  --background: #FAF5EF;
+--foreground: #1a1a1a;
+--card: #ffffff;
+--card-foreground: #1a1a1a;
+--popover: #ffffff;
+--popover-foreground: #1a1a1a;
+--primary: #AD3735;
+--primary-foreground: #FAF5EF;
+--secondary: #C96B5A;
+--secondary-foreground: #1a1a1a;
+--muted: #F5E6E2;
+--muted-foreground: #AD3735;
+--accent: #C96B5A;
+--accent-foreground: #1a1a1a;
+--destructive: #dc2626;
+--destructive-foreground: #fafafa;
+--border: #DEB8B3;
+--input: #DEB8B3;
+--ring: #AD3735;
+--radius: 0.5rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-poppins), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF5EF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C96B5A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AD3735;
+}
