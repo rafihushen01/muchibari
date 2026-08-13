@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { api, getStoredUser } from '@/lib/api'
 import { X, ShoppingBag, Minus, Plus, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -129,76 +130,25 @@ export function OrderNowModal({ product, selectedSize, selectedColor, onClose }:
     setLoading(true)
     setError('')
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const noteparts = []
-    if (sizeChoice) noteparts.push(`Size: ${sizeChoice}`)
-    if (colorChoice) noteparts.push(`Color: ${colorChoice}`)
-    const addressWithNote = noteparts.length
-      ? `${address.trim()}\n[${noteparts.join(', ')}]`
-      : address.trim()
-
-    let orderId: number
-
-    if (user) {
-      // Logged-in path — unchanged, RLS already allows this
-      const { data: order, error: orderErr } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total: finalTotal,
-          delivery_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka',
-          delivery_charge: deliveryCharge,
-          address: addressWithNote,
-          phone: phone.trim(),
-          status: 'pending',
-          is_guest: false,
-          guest_name: null,
-        })
-        .select()
-        .single()
-
-      if (orderErr) {
-        setError(orderErr.message)
-        setLoading(false)
-        return
-      }
-      orderId = order.id
-    } else {
-      // Guest path — goes through the RPC function instead
-      const { data: newOrderId, error: rpcErr } = await supabase.rpc('create_guest_order', {
-        p_total: finalTotal,
-        p_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka',
-        p_charge: deliveryCharge,
-        p_address: addressWithNote,
-        p_phone: phone.trim(),
-        p_guest_name: name.trim(),
+    try {
+      // Use the backend API for consistent validation and item handling
+      await api.orders.create({
+        phone: phone.trim(),
+        address: address.trim(),
+        guest_name: name.trim(),
+        delivery_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka',
+        items: items.map((i) => ({
+          product_id: i.product.id,
+          quantity: i.quantity,
+          size: i.size ?? '',
+          color: i.color ?? '',
+        })),
       })
-
-      if (rpcErr) {
-        setError(rpcErr.message)
-        setLoading(false)
-        return
-      }
-      orderId = newOrderId
-    }
-
-    const { error: itemsErr } = await supabase.from('order_items').insert(
-      items.map((i) => ({
-        order_id: orderId,
-        product_id: i.product.id,
-        quantity: i.quantity,
-        price: i.product.price,
-      }))
-    )
-
-    if (itemsErr) {
-      setError(itemsErr.message)
+      router.push('/order-success')
+    } catch (err: any) {
+      setError(err.message)
       setLoading(false)
-      return
     }
-
-    router.push('/order-success')
   }
 
   return (

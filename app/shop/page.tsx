@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api } from '@/lib/api'
 import Link from 'next/link'
@@ -15,6 +15,14 @@ function ShopContent() {
   const [categories, setCategories] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
+
+  const suggestionProducts = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase()
+    if (!normalizedQuery) return []
+
+    return products.filter((product) => product?.name?.toLowerCase().includes(normalizedQuery)).slice(0, 6)
+  }, [products, searchQuery])
 
   useEffect(() => {
     api.categories.list().then(setCategories).catch(() => setCategories([]))
@@ -30,23 +38,47 @@ function ShopContent() {
     <div className="pb-24 bg-[#FAF5EF] min-h-screen">
       {/* Search Bar */}
       <div className="sticky top-16 z-40 bg-white border-b px-4 py-3 space-y-3">
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2">
-          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search products..."
-            className="bg-transparent flex-1 text-sm outline-none text-gray-700 placeholder-gray-400"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <div className="relative">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2">
+            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setTimeout(() => setIsSearchFocused(false), 120)}
+              placeholder="Search products..."
+              className="bg-transparent flex-1 text-sm outline-none text-gray-700 placeholder-gray-400"
+            />
+            {searchQuery && (
+              <button type="button" onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {isSearchFocused && searchQuery.trim() && suggestionProducts.length > 0 && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-2 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+              {suggestionProducts.map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    setSearchQuery(product.name)
+                    setIsSearchFocused(false)
+                  }}
+                  className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <span className="truncate">{product.name}</span>
+                  <span className="text-xs text-gray-400">Match</span>
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
