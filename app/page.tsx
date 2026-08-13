@@ -4,6 +4,9 @@ import { api } from '@/lib/api'
 
 const icons: Record<string, string> = { 'casual-shoes': '👟', 'oxford-shoes': '👞', 'loafer-shoes': '🥾', boots: '🥾', belts: '🪢' }
 
+// ISR: Revalidate every 60 seconds
+export const revalidate = 60
+
 export default async function HomePage() {
   const [banner, categories, hotDeals] = await Promise.all([api.banner.get().catch(() => null), api.categories.list().catch(() => []), api.products.list({ hot_deal: true, in_stock: true, limit: 10 }).catch(() => [])])
   const topCategories = categories.slice(0, 4)
