@@ -7,7 +7,7 @@ import { getCart, getCartTotal, clearCart, isWalletOnlyCart, CartItem } from '@/
 import Image from 'next/image'
 import Link from 'next/link'
 
-
+// just a check
 export default function CheckoutPage() {
   const router = useRouter()
  const [cart, setCart] = useState<CartItem[]>([])
