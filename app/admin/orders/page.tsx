@@ -50,7 +50,7 @@ function Orders() {
           <article key={order.id} className="rounded-xl bg-white p-5 shadow-sm">
             <div className="mb-3 flex items-start justify-between gap-4">
               <div>
-                <p className="font-bold text-gray-800">Order #{order.id}</p>
+                <p className="font-bold text-gray-800">Order #{order?.order_number}</p>
                 <p className="mt-1 text-xs text-gray-400">{new Date(order.created_at).toLocaleDateString()}</p>
                 <p className="mt-2 text-sm text-gray-600">Customer: {order.profiles?.full_name ?? order.guest_name ?? 'Guest'}</p>
                 <p className="text-sm text-gray-600">Phone: {order.phone}</p>
