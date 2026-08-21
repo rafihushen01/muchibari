@@ -76,7 +76,7 @@ export default function ProfilePage() {
             {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-gray-700">Order #{order.id}</span>
+                  <span className="text-sm font-semibold text-gray-700">Order #{order?.order_number}</span>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                     order.status === 'delivered' ? 'bg-green-100 text-green-700' :
                     order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
