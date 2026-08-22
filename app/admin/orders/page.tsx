@@ -68,6 +68,7 @@ function Orders() {
               {order.order_items?.map((item: any) => <div key={item.id} className="flex items-center gap-3 text-sm text-gray-600">
                 {item.products?.image_url && <img src={item.products.image_url} alt="" className="h-10 w-10 rounded-lg object-cover" />}
                 <span>{item.products?.name ?? 'Product'} × {item.quantity} — ৳{item.price * item.quantity}</span>
+                <span>Size:{item.products?.size} ,Product Color: {item.products?.color}</span>
               </div>)}
             </div>
           </article>
