@@ -2,6 +2,17 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api')
 const TOKEN_KEY = 'muchi_bari_token'
 const USER_KEY = 'muchi_bari_user'
 
+function metaHeaders() {
+  if (typeof document === 'undefined') return {}
+  const cookies = document.cookie.split(';').map((value) => value.trim())
+  const get = (name: string) => cookies.find((cookie) => cookie.startsWith(`${name}=`))?.slice(name.length + 1)
+  const headers: Record<string, string> = {}
+  const fbp = get('_fbp'); const fbc = get('_fbc')
+  if (fbp) headers['X-Meta-Fbp'] = fbp
+  if (fbc) headers['X-Meta-Fbc'] = fbc
+  return headers
+}
+
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown }
 
 export class ApiError extends Error { constructor(message: string, public status: number) { super(message) } }
@@ -16,7 +27,7 @@ export async function apiFetch<T = any>(path: string, options: RequestOptions = 
   const token = getToken()
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { ...(body instanceof FormData ? {} : body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...headers },
+    headers: { ...(body instanceof FormData ? {} : body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...metaHeaders(), ...headers },
     body: body instanceof FormData ? body : body === undefined ? undefined : JSON.stringify(body),
   })
   if (response.status === 204) return undefined as T

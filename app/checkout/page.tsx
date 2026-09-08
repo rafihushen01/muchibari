@@ -6,6 +6,7 @@ import { api, getStoredUser } from '@/lib/api'
 import { getCart, getCartTotal, clearCart, isWalletOnlyCart, CartItem } from '@/lib/cart'
 import Image from 'next/image'
 import Link from 'next/link'
+import { trackPurchase } from '@/lib/analytics/meta'
 
 // just a check
 export default function CheckoutPage() {
@@ -43,8 +44,9 @@ export default function CheckoutPage() {
 
     if (!getStoredUser()) { router.push('/auth/login'); return }
     try {
-      await api.orders.create({ phone, address: address.trim(), delivery_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka', items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity, size: item.size, color: item.color })) })
+      const { order } = await api.orders.create({ phone, address: address.trim(), delivery_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka', items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity, size: item.size, color: item.color })) })
       clearCart()
+      trackPurchase(order.id, order.total)
       router.push('/order-success')
     } catch (err: any) { setError(err.message); setLoading(false) }
   }

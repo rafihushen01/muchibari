@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getCart, removeFromCart, updateQuantity, setCartItemVariant, isCartVariantComplete, CartItem } from '@/lib/cart'
 import { getStoredUser } from '@/lib/api'
+import { trackInitiateCheckout } from '@/lib/analytics/meta'
 
 export default function CartPage() {
   const router = useRouter()
@@ -45,6 +46,7 @@ export default function CartPage() {
       router.push('/auth/login')
       return
     }
+    trackInitiateCheckout({ contentIds: cart.map((item) => item.id), value: cartTotal, numItems: cart.reduce((sum, item) => sum + item.quantity, 0) })
     router.push('/checkout')
   }
 

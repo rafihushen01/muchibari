@@ -3,6 +3,7 @@
 import { addToCart } from '@/lib/cart'
 import { useRouter } from 'next/navigation'
 import { FaCartShopping } from "react-icons/fa6";
+import { trackAddToCart } from '@/lib/analytics/meta'
 
 export function AddToCartButton({ product }: { product: any }) {
   function handleAddToCart() {
@@ -15,6 +16,7 @@ export function AddToCartButton({ product }: { product: any }) {
       sizeOptions: product.sizes ?? undefined,
       colorOptions: product.colors ?? undefined,
     })
+    trackAddToCart({ id: product.id, name: product.name, price: product.price, quantity: 1 })
     // Show feedback
     alert('Added to cart! Choose size/color from your cart before checkout.')
   }

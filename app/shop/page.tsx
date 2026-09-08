@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api } from '@/lib/api'
 import Link from 'next/link'
+import { trackSearch } from '@/lib/analytics/meta'
 
 function ShopContent() {
   const searchParams = useSearchParams()
@@ -29,6 +30,7 @@ function ShopContent() {
   }, [])
 
   useEffect(() => {
+    if (searchQuery.trim()) trackSearch(searchQuery.trim())
     setLoading(true)
 
     api.products.list({ in_stock: true, category: selectedCategory === 'all' ? undefined : selectedCategory, q: searchQuery.trim() || undefined }).then((data) => setProducts(data)).catch(() => setProducts([])).finally(() => setLoading(false))

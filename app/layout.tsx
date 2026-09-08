@@ -6,6 +6,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import MessengerFloat from '@/components/MessengerFloat'
 import WhatsAppFloat from '@/components/WhatsappFloat'
+import { MetaPixel } from '@/components/meta-pixel'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -40,6 +41,7 @@ export default function RootLayout({
   </div>
   <MessengerFloat />
   <WhatsAppFloat/>
+  <MetaPixel />
 </body>
     </html>
   )

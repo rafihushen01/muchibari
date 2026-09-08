@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { trackViewContent } from '@/lib/analytics/meta'
 import { supabase } from '@/lib/supabase'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { ArrowLeft, Truck, Shield, RotateCcw, Star, ShoppingBag, CheckCircle2, AlertTriangle, ShieldCheck, XCircle } from 'lucide-react'
@@ -233,6 +234,7 @@ export default function ProductDetailPage() {
       .then(({ data }: any) => {
         setProduct(data)
         setLoading(false)
+        if (data) trackViewContent({ id: data.id, name: data.name, price: data.price, category: data.categories?.name })
         if (data?.categories?.id) {
           supabase
             .from('products')
