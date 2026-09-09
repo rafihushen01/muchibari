@@ -7,6 +7,9 @@ export type MetaEventName =
   | 'AddPaymentInfo'
   | 'Purchase'
 
+
+
+  // meta event fire is updated for correct event name and its full detail
 type MetaData = Record<string, string | number | boolean | string[] | undefined>
 type Fbq = (command: 'init' | 'track', event: string, data?: MetaData, options?: { eventID?: string }) => void
 

@@ -234,7 +234,6 @@ export default function ProductDetailPage() {
       .then(({ data }: any) => {
         setProduct(data)
         setLoading(false)
-        if (data) trackViewContent({ id: data.id, name: data.name, price: data.price, category: data.categories?.name })
         if (data?.categories?.id) {
           supabase
             .from('products')
@@ -256,6 +255,11 @@ export default function ProductDetailPage() {
 
     supabase.auth.getUser().then(({ data }: any) => setUser(data.user))
   }, [id])
+
+  useEffect(() => {
+    if (!product?.id) return
+    trackViewContent({ id: product.id, name: product.name, price: product.price, category: product.categories?.name })
+  }, [product?.id])
 
   async function handleSubmitReview() {
     if (!comment.trim()) { setSubmitError('Please write a comment.'); return }

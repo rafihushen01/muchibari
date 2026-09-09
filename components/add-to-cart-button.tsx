@@ -7,18 +7,21 @@ import { trackAddToCart } from '@/lib/analytics/meta'
 
 export function AddToCartButton({ product }: { product: any }) {
   function handleAddToCart() {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url ?? '',
-      category: product.categories?.name ?? '',
-      sizeOptions: product.sizes ?? undefined,
-      colorOptions: product.colors ?? undefined,
-    })
-    trackAddToCart({ id: product.id, name: product.name, price: product.price, quantity: 1 })
-    // Show feedback
-    alert('Added to cart! Choose size/color from your cart before checkout.')
+    try {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_url: product.image_url ?? '',
+        category: product.categories?.name ?? '',
+        sizeOptions: product.sizes ?? undefined,
+        colorOptions: product.colors ?? undefined,
+      })
+      trackAddToCart({ id: product.id, name: product.name, price: product.price, quantity: 1 })
+      alert('Added to cart! Choose size/color from your cart before checkout.')
+    } catch {
+      alert('Unable to add this product to your cart. Please try again.')
+    }
   }
 
   return (

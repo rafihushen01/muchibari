@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api, getStoredUser } from '@/lib/api'
 import { getCart, getCartTotal, clearCart, isWalletOnlyCart, CartItem } from '@/lib/cart'
 import Image from 'next/image'
 import Link from 'next/link'
-import { trackPurchase } from '@/lib/analytics/meta'
+import { getMetaBrowserIdentifiers, trackInitiateCheckout, trackPurchase } from '@/lib/analytics/meta'
 
 // just a check
 export default function CheckoutPage() {
@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+    const checkoutTracked = useRef(false)
 
   
 
@@ -38,13 +39,32 @@ export default function CheckoutPage() {
     api.products.list({ hot_deal: true, in_stock: true, limit: 6 }).then(setRelatedProducts).catch(() => setRelatedProducts([]))
   }, [])
 
+  useEffect(() => {
+    if (checkoutTracked.current || cart.length === 0 || !getStoredUser()) return
+    checkoutTracked.current = true
+    trackInitiateCheckout({
+      contentIds: cart.map((item) => item.id),
+      value: cart.reduce((total, item) => total + item.price * item.quantity, 0),
+      numItems: cart.reduce((sum, item) => sum + item.quantity, 0),
+    })
+  }, [cart])
+
   async function handlePlaceOrder() {
     setLoading(true)
     setError('')
 
     if (!getStoredUser()) { router.push('/auth/login'); return }
     try {
-      const { order } = await api.orders.create({ phone, address: address.trim(), delivery_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka', items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity, size: item.size, color: item.color })) })
+      const { fbp, fbc } = getMetaBrowserIdentifiers()
+      const { order } = await api.orders.create({
+        phone,
+        address: address.trim(),
+        delivery_zone: deliveryZone === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka',
+        items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity, size: item.size, color: item.color })),
+        fbp,
+        fbc,
+        event_source_url: window.location.href,
+      })
       clearCart()
       trackPurchase(order.id, order.total)
       router.push('/order-success')
