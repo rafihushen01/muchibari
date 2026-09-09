@@ -44,6 +44,7 @@ export default function CheckoutPage() {
     checkoutTracked.current = true
     trackInitiateCheckout({
       contentIds: cart.map((item) => item.id),
+      contents: cart.map((item) => ({ id: item.id, quantity: item.quantity, item_price: item.price })),
       value: cart.reduce((total, item) => total + item.price * item.quantity, 0),
       numItems: cart.reduce((sum, item) => sum + item.quantity, 0),
     })
@@ -66,7 +67,11 @@ export default function CheckoutPage() {
         event_source_url: window.location.href,
       })
       clearCart()
-      trackPurchase(order.id, order.total)
+      trackPurchase(order.id, order.total, (order.order_items ?? []).map((item: any) => ({
+        id: item.product_id,
+        quantity: item.quantity,
+        item_price: item.price,
+      })))
       router.push('/order-success')
     } catch (err: any) { setError(err.message); setLoading(false) }
   }
