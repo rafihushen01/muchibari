@@ -6,7 +6,7 @@ import { api, getStoredUser } from '@/lib/api'
 import { getCart, getCartTotal, clearCart, isWalletOnlyCart, CartItem } from '@/lib/cart'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getMetaBrowserIdentifiers, trackInitiateCheckout, trackPurchase } from '@/lib/analytics/meta'
+import { getMetaBrowserIdentifiers, trackInitiateCheckout, trackAddPaymentInfo, trackPurchase } from '@/lib/analytics/meta'
 
 // just a check
 export default function CheckoutPage() {
@@ -55,6 +55,11 @@ export default function CheckoutPage() {
     setError('')
 
     if (!getStoredUser()) { router.push('/auth/login'); return }
+    // Payment step reached (Cash on Delivery is the payment method): fire
+    // AddPaymentInfo right before the order is created so the full funnel
+    // (ViewContent -> AddToCart -> InitiateCheckout -> AddPaymentInfo -> Purchase)
+    // is traceable in Meta Events Manager.
+    trackAddPaymentInfo()
     try {
       const { fbp, fbc } = getMetaBrowserIdentifiers()
       const { order } = await api.orders.create({
