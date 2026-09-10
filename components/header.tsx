@@ -6,6 +6,7 @@ import { Phone, UserCircle, Menu, X, Home, ShoppingBag, MessageCircle, ShoppingC
 import { WHATSAPP_NUMBER } from '@/lib/data'
 import { useEffect, useState } from 'react'
 import { api, getStoredUser } from '@/lib/api'
+import { trackContact } from '@/lib/analytics/meta'
 import { useRouter, usePathname } from 'next/navigation'
 
 
@@ -57,7 +58,7 @@ useEffect(() => { api.categories.list().then(setCategories).catch(() => setCateg
 
             {/* Right: Call only */}
             <div className="flex items-center">
-              <a href={`tel:${WHATSAPP_NUMBER}`} className="p-2 text-white">
+              <a href={`tel:${WHATSAPP_NUMBER}`} className="p-2 text-white" onClick={() => trackContact('phone')}>
                 <Phone className="w-5 h-5" />
               </a>
               <Link href="/cart" className="hidden md:flex p-2 text-white">
@@ -126,7 +127,7 @@ useEffect(() => { api.categories.list().then(setCategories).catch(() => setCateg
   <span>Shop</span>
 </Link>
 
-<a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer"
+<a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" onClick={() => trackContact('whatsapp')}
   className="flex flex-col items-center justify-center gap-1 text-xs text-foreground/60 hover:text-primary transition-colors">
   <MessageCircle className="w-5 h-5" />
   <span>Whatsapp</span>

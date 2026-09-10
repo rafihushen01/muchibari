@@ -5,6 +5,8 @@ export type MetaEventName =
   | 'AddToCart'
   | 'InitiateCheckout'
   | 'AddPaymentInfo'
+  | 'CompleteRegistration'
+  | 'Contact'
   | 'Purchase'
 // final meta event update
 type MetaData = Record<string, string | number | boolean | string[] | Array<Record<string, string | number>> | undefined>
@@ -14,6 +16,16 @@ type Fbq = (
     | [command: 'init' | 'track', event: string, data?: MetaData, options?: { eventID?: string }]
     | [command: 'set', property: string, value: unknown, pixelId?: string]
 ) => void
+
+/** Runtime shape of the fbq global: a callable queue that fbevents upgrades
+ *  with `callMethod` once the remote script has finished loading. */
+type FbqQueue = Fbq & {
+  queue: unknown[][]
+  loaded?: boolean
+  version?: string
+  push?: unknown
+  callMethod?: (...args: unknown[]) => void
+}
 
 declare global {
   interface Window {
@@ -63,7 +75,7 @@ function warnMissingPixel() {
   warnedMissingPixel = true
   console.warn(
     '[Meta Pixel] NEXT_PUBLIC_META_PIXEL_ID is not set. ' +
-      'Browser events (PageView/ViewContent/AddToCart/InitiateCheckout/Purchase) will NOT fire. ' +
+      'Browser events (PageView/ViewContent/Search/AddToCart/InitiateCheckout/AddPaymentInfo/CompleteRegistration/Contact/Purchase) will NOT fire. ' +
       'Add NEXT_PUBLIC_META_PIXEL_ID to the frontend environment (same value as backend META_DATASET_ID).',
   )
 }
@@ -96,27 +108,36 @@ export function initMetaPixel() {
     return
   }
 
-  // Official Meta bootstrap shape: fbq() pushes onto a queue while
-  // fbevents.js is loading, then the loaded script replays the queue.
-  // queue.queue MUST exist eagerly so the replay never races.
-  const queue = ((...args: unknown[]) => {
-    ;(queue as unknown as { queue: unknown[] }).queue.push(args)
-  }) as unknown as Fbq & { queue: unknown[]; loaded?: boolean; version?: string; push?: Fbq }
+  // Official Meta bootstrap. The critical part is the `n.callMethod` branch.
+  // Once fbevents.js has loaded it installs `fbq.callMethod`, and from then on
+  // every call MUST be routed through it. A queue-only shim keeps accepting
+  // calls without complaining, but fbevents stops draining that array after
+  // the initial load - so every event after the first page view is silently
+  // thrown away. That single missing line is why only PageView ever reached
+  // Meta while the app still logged all the other events locally.
+  const w = window as unknown as { fbq?: FbqQueue; _fbq?: FbqQueue }
 
-  queue.queue = []
-  queue.loaded = true
-  queue.version = '2.0'
-  queue.push = queue as unknown as Fbq
-  window.fbq = queue
-  window._fbq = queue
+  if (!w.fbq) {
+    const n = ((...args: unknown[]) => {
+      if (n.callMethod) n.callMethod.apply(n, args)
+      else n.queue.push(args)
+    }) as unknown as FbqQueue
+
+    n.queue = []
+    n.loaded = true
+    n.version = '2.0'
+    n.push = n
+    w.fbq = n
+    w._fbq = n
+  }
 
   const script = document.createElement('script')
   script.async = true
   script.src = 'https://connect.facebook.net/en_US/fbevents.js'
   document.head.appendChild(script)
 
-  queue('set', 'autoConfig', false, pixelId)
-  queue('init', pixelId)
+  w.fbq('set', 'autoConfig', false, pixelId)
+  w.fbq('init', pixelId)
   initialized = true
 }
 
@@ -175,6 +196,24 @@ export function trackInitiateCheckout(data: { contentIds: string[]; contents: Ar
 
 export function trackAddPaymentInfo() {
   return track('AddPaymentInfo', {})
+}
+
+/**
+ * Fired once the customer actually creates an account. Meta's standard event
+ * for this step is CompleteRegistration; without it the funnel jumps straight
+ * from ViewContent to Purchase for every first-time buyer.
+ */
+export function trackCompleteRegistration(method: 'email' | 'facebook' | 'google' = 'email') {
+  return track('CompleteRegistration', { status: true, method, currency: 'BDT' })
+}
+
+/**
+ * Fired when the customer taps a direct-contact channel (WhatsApp, Messenger or
+ * phone) instead of checking out. This is the main conversion path for this
+ * store, so it has to be measurable separately from Purchase.
+ */
+export function trackContact(channel: 'whatsapp' | 'messenger' | 'phone') {
+  return track('Contact', { content_name: channel })
 }
 
 export function trackPurchase(orderId: string, value: number, contents: Array<{ id: string; quantity: number; item_price: number }> = []) {

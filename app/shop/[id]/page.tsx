@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { trackViewContent } from '@/lib/analytics/meta'
+import { trackViewContent, trackContact } from '@/lib/analytics/meta'
 import { supabase } from '@/lib/supabase'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { ArrowLeft, Truck, Shield, RotateCcw, Star, ShoppingBag, CheckCircle2, AlertTriangle, ShieldCheck, XCircle } from 'lucide-react'
@@ -433,7 +433,7 @@ export default function ProductDetailPage() {
                 <ShoppingBag className="w-5 h-5" />
                 Order Now | Cash on Delivery
               </button>
-              <a href={messengerLink} target="_blank" rel="noopener noreferrer"
+              <a href={messengerLink} target="_blank" rel="noopener noreferrer" onClick={() => trackContact('messenger')}
                 className="w-full text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-colors flex items-center justify-center gap-3"
                 style={{ backgroundColor: '#0084FF' }}>
                 <FaFacebookMessenger size={24} color="white" />
@@ -696,6 +696,7 @@ export default function ProductDetailPage() {
 
     <a 
   href="tel:+8801969592755" 
+  onClick={() => trackContact('phone')}
   className="inline-flex items-center justify-center rounded-2xl bg-[#995628] px-5 py-3 text-white font-bold shadow-md hover:bg-[#C4874A] transition-colors"
 >
   📞 হেল্পলাইন: +8801969592755

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
+import { trackCompleteRegistration } from '@/lib/analytics/meta'
 // new deployment
 export default function SignupPage() {
   const router = useRouter()
@@ -18,6 +19,7 @@ export default function SignupPage() {
     setError('')
     try {
       await api.auth.register(fullName, email, password)
+      trackCompleteRegistration('email')
       router.push('/')
     } catch (err: any) {
       setError(err.message)
